@@ -19,6 +19,9 @@
 
 package com.mendhak.gpslogger;
 
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.location.*;
 import android.os.Bundle;
 import com.mendhak.gpslogger.common.Session;
@@ -29,7 +32,7 @@ import org.slf4j.Logger;
 
 import java.util.Iterator;
 
-class GeneralLocationListener implements LocationListener, GpsStatus.Listener, GpsStatus.NmeaListener {
+class GeneralLocationListener implements LocationListener, GpsStatus.Listener, GpsStatus.NmeaListener, SensorEventListener {
 
     private static String listenerName;
     private static GpsLoggingService loggingService;
@@ -41,6 +44,12 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
     protected String ageOfDgpsData;
     protected String dgpsId;
     protected int satellitesUsedInFix;
+
+    protected float lax_x;
+    protected float lax_y;
+    protected float lax_z;
+    protected int lax_n;
+
     private Session session = Session.getInstance();
 
     GeneralLocationListener(GpsLoggingService activity, String name) {
@@ -67,19 +76,42 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
                 b.putString("LISTENER", listenerName);
                 b.putInt("SATELLITES_FIX", satellitesUsedInFix);
                 b.putString("DETECTED_ACTIVITY", session.getLatestDetectedActivityName());
-
+                b.putString("LAXx",this.lax_n!=0?String.valueOf(this.lax_x/this.lax_n):"");
+                b.putString("LAXy",this.lax_n!=0?String.valueOf(this.lax_y/this.lax_n):"");
+                b.putString("LAXz",this.lax_n!=0?String.valueOf(this.lax_z/this.lax_n):"");
                 loc.setExtras(b);
                 loggingService.onLocationChanged(loc);
 
                 this.latestHdop = "";
                 this.latestPdop = "";
                 this.latestVdop = "";
+
+                this.lax_x = 0;
+                this.lax_y = 0;
+                this.lax_z = 0;
+                this.lax_n = 0;
+
                 session.setLatestDetectedActivity(null);
             }
 
         } catch (Exception ex) {
             LOG.error("GeneralLocationListener.onLocationChanged", ex);
         }
+
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
+            this.lax_x += event.values[0];
+            this.lax_y += event.values[1];
+            this.lax_z += event.values[2];
+            this.lax_n++;
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
 

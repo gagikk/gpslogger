@@ -24,6 +24,8 @@ import android.app.*;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.*;
@@ -69,6 +71,7 @@ public class GpsLoggingService extends Service  {
     private PreferenceHelper preferenceHelper = PreferenceHelper.getInstance();
     private Session session = Session.getInstance();
     protected LocationManager gpsLocationManager;
+    private SensorManager sensorManager;
     private LocationManager passiveLocationManager;
     private LocationManager towerLocationManager;
     private GeneralLocationListener gpsLocationListener;
@@ -556,6 +559,7 @@ public class GpsLoggingService extends Service  {
 
         gpsLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         towerLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
         checkTowerAndGpsStatus();
 
@@ -565,7 +569,7 @@ public class GpsLoggingService extends Service  {
             gpsLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, gpsLocationListener);
             gpsLocationManager.addGpsStatusListener(gpsLocationListener);
             gpsLocationManager.addNmeaListener(gpsLocationListener);
-
+            sensorManager.registerListener(gpsLocationListener, sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION), SensorManager.SENSOR_DELAY_NORMAL);
             session.setUsingGps(true);
             startAbsoluteTimer();
         }
@@ -640,6 +644,7 @@ public class GpsLoggingService extends Service  {
             LOG.debug("Removing gpsLocationManager updates");
             gpsLocationManager.removeUpdates(gpsLocationListener);
             gpsLocationManager.removeGpsStatusListener(gpsLocationListener);
+            sensorManager.unregisterListener(gpsLocationListener);
         }
 
         session.setWaitingForLocation(false);

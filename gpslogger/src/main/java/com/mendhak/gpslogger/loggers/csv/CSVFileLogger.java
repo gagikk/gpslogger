@@ -51,7 +51,7 @@ public class CSVFileLogger implements FileLogger {
 
             FileOutputStream writer = new FileOutputStream(file, true);
             BufferedOutputStream output = new BufferedOutputStream(writer);
-            String header = "time,lat,lon,elevation,accuracy,bearing,speed,satellites,provider,hdop,vdop,pdop,geoidheight,ageofdgpsdata,dgpsid,activity,battery\n";
+            String header = "time,lat,lon,elevation,accuracy,bearing,speed,satellites,provider,hdop,vdop,pdop,geoidheight,ageofdgpsdata,dgpsid,activity,battery,lax_x,lax_y,lax_z\n";
             output.write(header.getBytes());
             output.flush();
             output.close();
@@ -73,7 +73,7 @@ public class CSVFileLogger implements FileLogger {
 
     String getCsvLine(Location loc, String dateTimeString) {
 
-        String outputString = String.format(Locale.US, "%s,%f,%f,%s,%s,%s,%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", dateTimeString,
+        String outputString = String.format(Locale.US, "%s,%f,%f,%s,%s,%s,%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", dateTimeString,
                 loc.getLatitude(),
                 loc.getLongitude(),
                 loc.hasAltitude() ? loc.getAltitude() : "",
@@ -89,7 +89,10 @@ public class CSVFileLogger implements FileLogger {
                 (loc.getExtras() != null && !Strings.isNullOrEmpty(loc.getExtras().getString("AGEOFDGPSDATA"))) ? loc.getExtras().getString("AGEOFDGPSDATA") : "",
                 (loc.getExtras() != null && !Strings.isNullOrEmpty(loc.getExtras().getString("DGPSID"))) ? loc.getExtras().getString("DGPSID") : "",
                 (loc.getExtras() != null && !Strings.isNullOrEmpty(loc.getExtras().getString("DETECTED_ACTIVITY"))) ? loc.getExtras().getString("DETECTED_ACTIVITY") : "",
-                (batteryLevel != null) ? batteryLevel : ""
+                (batteryLevel != null) ? batteryLevel : "",
+                (loc.getExtras() != null && !Strings.isNullOrEmpty(loc.getExtras().getString("LAXx"))) ? loc.getExtras().getString("LAXx") : "",
+                (loc.getExtras() != null && !Strings.isNullOrEmpty(loc.getExtras().getString("LAXy"))) ? loc.getExtras().getString("LAXy") : "",
+                (loc.getExtras() != null && !Strings.isNullOrEmpty(loc.getExtras().getString("LAXz"))) ? loc.getExtras().getString("LAXz") : ""
         );
         return outputString;
     }
